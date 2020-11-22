@@ -32,7 +32,7 @@ jobs:
           sudo apt-add-repository "deb [arch=amd64] https://apt.releases.hashicorp.com $(lsb_release -cs) main"
           sudo apt-get update && sudo apt-get install terraform
 
-          cd /home/runner/work/wooliesx-weather-api/wooliesx-weather-api/infra
+          cd /home/runner/work/woolies-weather-forcast/woolies-weather-forcast/infra
           export TF_VAR_apikey=$(aws secretsmanager get-secret-value --secret-id APIKEY | jq -r .SecretString)
 
           terraform init
