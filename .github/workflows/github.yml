@@ -1,0 +1,39 @@
+name: Weather Infra Deploy
+on:
+  push: []
+  workflow_dispatch:
+    inputs:
+      AWS_ACCESS_KEY_ID:
+        description: 'AWS_ACCESS_KEY_ID'
+        required: true
+      AWS_SECRET_ACCESS_KEY:
+        description: 'AWS_SECRET_ACCESS_KEY'
+        required: true
+      ENV:
+        description: 'Environment'
+        required: true
+        default: dev
+
+jobs:
+  deploy_infra:
+    if: ${{ github.event.inputs.AWS_ACCESS_KEY_ID != '' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v1
+      - name: Deploy infra
+        env:
+          AWS_ACCESS_KEY_ID: ${{ github.event.inputs.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ github.event.inputs.AWS_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: ap-southeast-2
+          AWS_SESSION_TOKEN: ${{ github.event.inputs.AWS_SESSION_TOKEN }}
+        run: |
+
+          curl -fsSL https://apt.releases.hashicorp.com/gpg | sudo apt-key add -
+          sudo apt-add-repository "deb [arch=amd64] https://apt.releases.hashicorp.com $(lsb_release -cs) main"
+          sudo apt-get update && sudo apt-get install terraform
+
+          cd /home/runner/work/wooliesx-weather-api/wooliesx-weather-api/infra
+          export TF_VAR_apikey=$(aws secretsmanager get-secret-value --secret-id APIKEY | jq -r .SecretString)
+
+          terraform init
+          terraform apply -auto-approve
